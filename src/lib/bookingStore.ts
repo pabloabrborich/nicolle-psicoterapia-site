@@ -18,7 +18,7 @@ function hasSupabase() {
 }
 
 async function supabaseFetch(path: string, init?: RequestInit) {
-  const baseUrl = supabaseUrl.replace(/\/$/, "");
+  const baseUrl = supabaseUrl.replace(/\/rest\/v1\/?$/, "").replace(/\/$/, "");
   const isNewSecretKey = supabaseKey.startsWith("sb_secret_");
   const headers = new Headers(init?.headers);
   headers.set("apikey", supabaseKey);
