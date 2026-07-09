@@ -70,7 +70,7 @@ Para produccion free/funcional, crea un proyecto Supabase y una tabla `therapy_b
 create table therapy_bookings (
   id text primary key,
   service text not null,
-  "startsAt" timestamptz not null unique,
+  "startsAt" timestamptz not null,
   "endsAt" timestamptz not null,
   name text not null,
   email text not null,
@@ -79,6 +79,21 @@ create table therapy_bookings (
   status text not null default 'pending',
   "createdAt" timestamptz not null
 );
+
+create unique index if not exists unique_active_booking_slot
+on therapy_bookings ("startsAt")
+where status in ('pending', 'confirmed');
+```
+
+Si ya habias creado la tabla con `"startsAt" timestamptz not null unique`, ejecuta esta migracion una sola vez:
+
+```sql
+alter table therapy_bookings
+drop constraint if exists "therapy_bookings_startsAt_key";
+
+create unique index if not exists unique_active_booking_slot
+on therapy_bookings ("startsAt")
+where status in ('pending', 'confirmed');
 ```
 
 Configura `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY` y una clave fuerte en `BOOKING_ADMIN_TOKEN` dentro de Vercel. No expongas la service role key como variable `NEXT_PUBLIC`.
