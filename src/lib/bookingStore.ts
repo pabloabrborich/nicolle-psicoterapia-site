@@ -19,15 +19,18 @@ function hasSupabase() {
 
 async function supabaseFetch(path: string, init?: RequestInit) {
   const baseUrl = supabaseUrl.replace(/\/$/, "");
+  const isNewSecretKey = supabaseKey.startsWith("sb_secret_");
+  const headers = new Headers(init?.headers);
+  headers.set("apikey", supabaseKey);
+  headers.set("Content-Type", "application/json");
+  headers.set("Prefer", "return=representation");
+  if (!isNewSecretKey) {
+    headers.set("Authorization", `Bearer ${supabaseKey}`);
+  }
+
   const response = await fetch(`${baseUrl}/rest/v1/${path}`, {
     ...init,
-    headers: {
-      apikey: supabaseKey,
-      Authorization: `Bearer ${supabaseKey}`,
-      "Content-Type": "application/json",
-      Prefer: "return=representation",
-      ...(init?.headers || {})
-    },
+    headers,
     cache: "no-store"
   });
 
