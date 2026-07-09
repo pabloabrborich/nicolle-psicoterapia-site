@@ -9,6 +9,10 @@ const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || "";
 const tableName = process.env.SUPABASE_BOOKINGS_TABLE || "therapy_bookings";
 const activeStatuses: BookingStatus[] = ["pending", "confirmed"];
 
+function sameInstant(left: string, right: string) {
+  return new Date(left).getTime() === new Date(right).getTime();
+}
+
 function memoryStore() {
   globalThis.__therapyBookings = globalThis.__therapyBookings || [];
   return globalThis.__therapyBookings;
@@ -64,7 +68,7 @@ export async function createBooking(input: Omit<Booking, "id" | "createdAt" | "s
   };
 
   const existing = await listBookings();
-  const isTaken = existing.some((item) => item.startsAt === booking.startsAt && activeStatuses.includes(item.status));
+  const isTaken = existing.some((item) => sameInstant(item.startsAt, booking.startsAt) && activeStatuses.includes(item.status));
   if (isTaken) {
     throw new Error("slot_taken");
   }

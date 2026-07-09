@@ -22,6 +22,10 @@ const initialForm: FormState = {
   consultationReason: ""
 };
 
+function slotKey(value: string) {
+  return new Date(value).getTime();
+}
+
 export function OwnedBookingCalendar() {
   const [booked, setBooked] = useState<PublicBooking[]>([]);
   const [selectedDay, setSelectedDay] = useState("");
@@ -44,8 +48,8 @@ export function OwnedBookingCalendar() {
   }, []);
 
   const selectedSlots = days.find((day) => day.key === selectedDay)?.slots || [];
-  const bookedStarts = new Set(booked.map((booking) => booking.startsAt));
-  const dayIsFull = selectedSlots.length > 0 && selectedSlots.every((slot) => bookedStarts.has(slot));
+  const bookedStarts = new Set(booked.map((booking) => slotKey(booking.startsAt)));
+  const dayIsFull = selectedSlots.length > 0 && selectedSlots.every((slot) => bookedStarts.has(slotKey(slot)));
 
   function setField<K extends keyof FormState>(key: K, value: FormState[K]) {
     setForm((current) => ({ ...current, [key]: value }));
@@ -120,7 +124,7 @@ export function OwnedBookingCalendar() {
         </div>
         <div className="mt-5 grid max-h-[460px] gap-2 overflow-auto pr-1">
           {days.map((day) => {
-            const visibleAvailableCount = day.slots.filter((slot) => !bookedStarts.has(slot)).length;
+            const visibleAvailableCount = day.slots.filter((slot) => !bookedStarts.has(slotKey(slot))).length;
             return (
               <button
                 key={day.key}
@@ -154,7 +158,7 @@ export function OwnedBookingCalendar() {
           <legend className="text-sm font-semibold text-ink">Horario</legend>
           <div className="mt-2 grid grid-cols-2 gap-2 sm:grid-cols-3">
             {selectedSlots.map((slot) => {
-              const unavailable = bookedStarts.has(slot) || dayIsFull;
+              const unavailable = bookedStarts.has(slotKey(slot)) || dayIsFull;
               return (
                 <button
                   type="button"
