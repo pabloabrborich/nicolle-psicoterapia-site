@@ -29,7 +29,10 @@ export async function GET(request: NextRequest) {
     });
   } catch (error) {
     console.error(error);
-    return NextResponse.json({ error: "booking_list_failed" }, { status: 500 });
+    return NextResponse.json(
+      { error: "booking_list_failed", detail: error instanceof Error ? error.message : "Unknown booking list error" },
+      { status: 500 }
+    );
   }
 }
 
@@ -58,7 +61,10 @@ export async function POST(request: NextRequest) {
     }
 
     console.error(error);
-    return NextResponse.json({ error: "booking_failed" }, { status: 500 });
+    return NextResponse.json(
+      { error: "booking_failed", detail: error instanceof Error ? error.message : "Unknown booking error" },
+      { status: 500 }
+    );
   }
 }
 
