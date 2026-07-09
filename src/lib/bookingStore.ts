@@ -18,7 +18,8 @@ function hasSupabase() {
 }
 
 async function supabaseFetch(path: string, init?: RequestInit) {
-  const response = await fetch(`${supabaseUrl}/rest/v1/${path}`, {
+  const baseUrl = supabaseUrl.replace(/\/$/, "");
+  const response = await fetch(`${baseUrl}/rest/v1/${path}`, {
     ...init,
     headers: {
       apikey: supabaseKey,
@@ -31,7 +32,8 @@ async function supabaseFetch(path: string, init?: RequestInit) {
   });
 
   if (!response.ok) {
-    throw new Error(`Supabase request failed: ${response.status}`);
+    const details = await response.text();
+    throw new Error(`Supabase request failed: ${response.status} ${details}`);
   }
 
   return response.json();
@@ -39,7 +41,8 @@ async function supabaseFetch(path: string, init?: RequestInit) {
 
 export async function listBookings() {
   if (hasSupabase()) {
-    return (await supabaseFetch(`${tableName}?select=*&order=startsAt.asc`)) as Booking[];
+    const rows = (await supabaseFetch(`${tableName}?select=*`)) as Booking[];
+    return rows.sort((a, b) => a.startsAt.localeCompare(b.startsAt));
   }
 
   return [...memoryStore()].sort((a, b) => a.startsAt.localeCompare(b.startsAt));

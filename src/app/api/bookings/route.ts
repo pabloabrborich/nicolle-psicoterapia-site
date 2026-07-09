@@ -10,22 +10,27 @@ function isAdmin(request: NextRequest) {
 }
 
 export async function GET(request: NextRequest) {
-  const bookings = await listBookings();
-  const admin = request.nextUrl.searchParams.get("admin") === "1";
+  try {
+    const bookings = await listBookings();
+    const admin = request.nextUrl.searchParams.get("admin") === "1";
 
-  if (admin && !isAdmin(request)) {
-    return NextResponse.json({ error: "unauthorized" }, { status: 401 });
+    if (admin && !isAdmin(request)) {
+      return NextResponse.json({ error: "unauthorized" }, { status: 401 });
+    }
+
+    if (admin) {
+      return NextResponse.json({ bookings });
+    }
+
+    return NextResponse.json({
+      bookings: bookings
+        .filter((booking) => booking.status !== "cancelled")
+        .map(({ id, service, startsAt, endsAt, status }) => ({ id, service, startsAt, endsAt, status }))
+    });
+  } catch (error) {
+    console.error(error);
+    return NextResponse.json({ error: "booking_list_failed" }, { status: 500 });
   }
-
-  if (admin) {
-    return NextResponse.json({ bookings });
-  }
-
-  return NextResponse.json({
-    bookings: bookings
-      .filter((booking) => booking.status !== "cancelled")
-      .map(({ id, service, startsAt, endsAt, status }) => ({ id, service, startsAt, endsAt, status }))
-  });
 }
 
 export async function POST(request: NextRequest) {
@@ -52,6 +57,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "slot_taken" }, { status: 409 });
     }
 
+    console.error(error);
     return NextResponse.json({ error: "booking_failed" }, { status: 500 });
   }
 }
